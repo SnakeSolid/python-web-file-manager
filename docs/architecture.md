@@ -14,7 +14,8 @@ src/web_file_manager/
   config.py          # Config dataclass (frozen): base dir, flags, rendered index
   server.py          # create_app(config): FastAPI app — routes, middleware, handlers
   paths.py           # containment check, relpath normalize, safe-name sanitize
-  static.py          # single-page HTML/CSS/JS (rendered once with the two flags)
+  static.py          # loads the single-page UI template, bakes in the two flags
+  index.html         # the single-page UI template (HTML/CSS/JS), shipped as package data
 ```
 
 `main()` (in `__init__.py`) is the `uv` script entry. It:

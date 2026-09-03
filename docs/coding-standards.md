@@ -22,7 +22,9 @@ change.
 - Keep the module roles in
   [architecture.md](./architecture.md) intact: `__init__.py` (CLI + `main`),
   `config.py` (frozen `Config`), `server.py` (app factory), `paths.py` (pure path
-  helpers), `static.py` (UI strings). Put new behaviour in the module that owns it.
+  helpers), `static.py` (UI template loading/rendering). Put new behaviour in the
+  module that owns it. The single-page UI markup lives in `index.html` (a sibling
+  of `static.py`, shipped as package data) and is loaded at import time.
 - `main()` is the `uv` script entry — **preserve its signature**
   (`web-file-manager = "web_file_manager:main"`).
 - `create_app(config)` is the single factory; inject config via the `Config`

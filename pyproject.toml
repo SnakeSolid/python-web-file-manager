@@ -20,6 +20,10 @@ web-file-manager = "web_file_manager:main"
 requires = ["uv_build>=0.12.9,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.uv]
+# Ship the extracted single-page UI template alongside the package.
+package-data = { "web_file_manager" = ["**/*.html"] }
+
 [dependency-groups]
 dev = [
     "ruff>=0.16.5",
