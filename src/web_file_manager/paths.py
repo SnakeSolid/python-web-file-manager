@@ -13,7 +13,7 @@ import re
 import urllib.parse
 from pathlib import Path
 
-__all__ = ["resolve", "rel_display", "safe_filename", "unique_name"]
+__all__ = ["rel_display", "resolve", "safe_filename", "unique_name"]
 
 # Maximum length of a sanitized filename in UTF-8 bytes.
 _MAX_FILENAME_BYTES = 255
@@ -43,7 +43,7 @@ def resolve(base_dir: Path, rel: str) -> Path | None:
     if resolved == base_resolved:
         return resolved
     try:
-        resolved.relative_to(base_resolved)
+        _ = resolved.relative_to(base_resolved)
     except ValueError:
         return None
     return resolved

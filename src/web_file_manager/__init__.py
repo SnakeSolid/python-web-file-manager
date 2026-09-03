@@ -44,31 +44,31 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="web-file-manager",
         description="Expose a directory tree as a browser-based file manager.",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "-a",
         "--address",
         default="localhost",
         help="bind address (host name or IP); default: localhost",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "-p",
         "--port",
         type=_port,
         default=8080,
         help="TCP port (1-65535); default: 8080",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "-d",
         "--base-dir",
         default=".",
         help="directory to expose, resolved to an absolute path; default: current dir",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--allow-upload",
         action="store_true",
         help="enable the upload endpoint",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--allow-download",
         action="store_true",
         help="enable directory listing and file download",
@@ -111,8 +111,8 @@ def main() -> None:
     print(f"Download enabled: {'yes' if args.allow_download else 'no'}")
     if not args.allow_upload and not args.allow_download:
         print(
-            "warning: both upload and download are disabled; the server will "
-            "return 403/404 for all file operations",
+            "warning: both upload and download are disabled; "
+            "the server will return 403/404 for all file operations",
             file=sys.stderr,
         )
 

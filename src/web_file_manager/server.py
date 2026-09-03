@@ -79,7 +79,7 @@ def create_app(config: Config) -> FastAPI:
     # ------------------------------------------------------- exception handlers
 
     @app.exception_handler(HTTPException)
-    async def _http_exception(request: Request, exc: HTTPException):
+    async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:
         # All JSON errors are answered as ``{"error": "<message>"}`` (spec §6.5).
         return JSONResponse(
             status_code=exc.status_code,
@@ -88,7 +88,9 @@ def create_app(config: Config) -> FastAPI:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def _validation_error(request: Request, exc: RequestValidationError):
+    async def _validation_error(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         # Remap 422 (bad/missing form-data) to 400 for the upload endpoint (spec §6.4).
         return JSONResponse(
             status_code=400,
@@ -248,7 +250,7 @@ async def _store_upload_file(
                 chunk = await upload_file.read(_STREAM_CHUNK)
                 if not chunk:
                     break
-                out.write(chunk)
+                _ = out.write(chunk)
                 size += len(chunk)
         os.replace(tmp, final)
     except OSError:
