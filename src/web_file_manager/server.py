@@ -27,8 +27,8 @@ from fastapi.responses import (
     Response,
 )
 
-from . import paths as paths_mod
 from .config import Config
+from .paths import rel_display, resolve, safe_filename, unique_name
 
 __all__ = ["create_app"]
 
@@ -108,7 +108,7 @@ def create_app(config: Config) -> FastAPI:
     async def list_dir(path: str = ""):
         if not config.allow_download:
             raise HTTPException(403, "download is disabled")
-        resolved = paths_mod.resolve(config.base_dir, path)
+        resolved = resolve(config.base_dir, path)
         if resolved is None or not resolved.is_dir():
             raise HTTPException(404, "not found")
 
@@ -146,7 +146,7 @@ def create_app(config: Config) -> FastAPI:
         dirs = [e for e in entries if e["type"] == "dir"]
         files = [e for e in entries if e["type"] == "file"]
 
-        rel = paths_mod.rel_display(resolved, config.base_dir)
+        rel = rel_display(resolved, config.base_dir)
         parent = os.path.dirname(rel) if rel else ""
         return {"path": rel, "parent": parent, "entries": dirs + files}
 
@@ -154,7 +154,7 @@ def create_app(config: Config) -> FastAPI:
     async def download(path: str = ""):
         if not config.allow_download:
             raise HTTPException(403, "download is disabled")
-        resolved = paths_mod.resolve(config.base_dir, path)
+        resolved = resolve(config.base_dir, path)
         if resolved is None or not resolved.is_file():
             raise HTTPException(404, "not found")
         # 302 redirect to the canonical /file endpoint (spec §4.3).
@@ -164,7 +164,7 @@ def create_app(config: Config) -> FastAPI:
     async def file(path: str = ""):
         if not config.allow_download:
             raise HTTPException(403, "download is disabled")
-        resolved = paths_mod.resolve(config.base_dir, path)
+        resolved = resolve(config.base_dir, path)
         if resolved is None or not resolved.is_file():
             raise HTTPException(404, "not found")
         ctype, _ = mimetypes.guess_type(resolved.name)
@@ -195,7 +195,7 @@ def create_app(config: Config) -> FastAPI:
         if sum(f.size or 0 for f in files) > _BODY_CAP:
             raise HTTPException(413, "request body too large")
 
-        target_dir = paths_mod.resolve(config.base_dir, path)
+        target_dir = resolve(config.base_dir, path)
         if target_dir is None or not target_dir.is_dir():
             target_dir = None  # per-file "invalid target"
 
@@ -219,7 +219,7 @@ async def _store_upload_file(
     place, so a symlink is never followed or overwritten (spec §3.4).
     """
     original = upload_file.filename or ""
-    safe = paths_mod.safe_filename(original)
+    safe = safe_filename(original)
     if safe is None:
         return {
             "original": original,
@@ -239,7 +239,7 @@ async def _store_upload_file(
             "error": "invalid target",
         }
 
-    final = paths_mod.unique_name(target_dir, safe)
+    final = unique_name(target_dir, safe)
     tmp = target_dir / f".upload-{uuid.uuid4().hex}.tmp"
     size = 0
     try:
