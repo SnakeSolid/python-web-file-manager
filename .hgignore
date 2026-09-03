@@ -1,0 +1,9 @@
+syntax: glob
+*.egg-info
+*.py[oc]
+.venv
+__pycache__/
+build/
+dist/
+wheels/
+.ruff_cache

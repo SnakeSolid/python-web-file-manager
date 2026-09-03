@@ -1,0 +1,26 @@
+[project]
+name = "web-file-manager"
+version = "0.1.0"
+description = "Single-page web file manager: browse, download and upload files over HTTP (FastAPI + Uvicorn)"
+readme = "README.md"
+authors = [
+    { name = "Shabanov Anton", email = "iamshabanov@yandex.ru" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    "python-multipart>=0.0.32",
+    "uvicorn[standard]>=0.52.4",
+]
+
+[project.scripts]
+web-file-manager = "web_file_manager:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.5",
+]
