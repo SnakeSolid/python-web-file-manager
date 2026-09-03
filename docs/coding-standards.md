@@ -55,7 +55,13 @@ change.
 - **Listing**: directories first then files, each case-insensitive alphabetical
   (`key=str.lower`); `.`/`..` are never listed (the UI renders `..` from `path`).
 - **Static UI**: one self-contained HTML document, no external fonts/icons/CDN; the
-  two feature flags are baked into `<meta>` tags the JS reads on load.
+  two feature flags are baked into `<meta>` tags the JS reads on load. The file
+  table shows a per-entry inline-SVG icon coloured by a seven-class taxonomy
+  (dir / text / image / audio / video / app / other); the client picks the class
+  via a `classify` helper that checks known-text extensions *before* the file's
+  `mime` type, so source/data files with a spurious `application/*` MIME (e.g.
+  `.rs`, `.ts`, `.sql`) still read as "text". Icons are inline SVG strings in
+  `index.html`; the server supplies `mime` on each `/list` file entry.
 
 ## Style & lint
 

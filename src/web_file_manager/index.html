@@ -232,8 +232,37 @@
             .icon {
                 display: inline-block;
                 width: 18px;
+                height: 18px;
                 margin-right: 8px;
-                color: var(--accent);
+                vertical-align: -3px;
+                color: var(--muted);
+                fill: currentColor;
+            }
+            .icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            .icon.k-dir {
+                color: #d97706;
+            }
+            .icon.k-text {
+                color: #64748b;
+            }
+            .icon.k-image {
+                color: #2563eb;
+            }
+            .icon.k-audio {
+                color: #7c3aed;
+            }
+            .icon.k-video {
+                color: #dc2626;
+            }
+            .icon.k-app {
+                color: #16a34a;
+            }
+            .icon.k-other {
+                color: #9ca3af;
             }
             .notice {
                 margin: 20px;
@@ -325,6 +354,101 @@
                     return d.toISOString().slice(0, 10);
                 };
 
+                // Inline 18x18 icons, one per file class. Each is a single-fill
+                // silhouette drawn with fill="currentColor", so the per-class CSS
+                // accent color (.icon.k-*) tints it. Kept self-contained: no
+                // external fonts/icons/CDN.
+                const ICONS = {
+                    dir: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4h4a2 2 0 0 1 1.41.59l1.18 1.17A2 2 0 0 0 18.2 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6z"/></svg>`,
+                    text: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M14 2v5h5M8 13h8M8 16h8M8 19h5"/></svg>`,
+                    image: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M20 17l-5-5-6 6-3-3-4 4"/><circle cx="8.5" cy="8.5" r="1.6" fill="currentColor" stroke="none"/></svg>`,
+                    audio: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>`,
+                    video: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M10 8.5l6 3.5-6 3.5v-7z"/></svg>`,
+                    app: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 8a9 9 0 0 0-.2-2l-2.4-1-1-2.3a9 9 0 0 0-1.8-.5v5.4M3 8a9 9 0 0 1 .2-2l2.4-1 1-2.3a9 9 0 0 1 1.8-.5v5.4M11.3 12a3.3 3.3 0 1 1-6.6 0 3.3 3.3 0 0 1 6.6 0z"/></svg>`,
+                    other: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M14 2v5h5"/></svg>`,
+                };
+
+                // Extensions whose content a user reads as plain text. Checked
+                // BEFORE the mime type so that source/data files whose mime is a
+                // spurious "application/*" (e.g. .rs, .ts, .sql) still classify as
+                // "text" instead of "app". This is presentation-only; the server's
+                // /file Content-Type is unaffected.
+                const TEXT_EXTS = new Set([
+                    "txt",
+                    "md",
+                    "markdown",
+                    "rst",
+                    "log",
+                    "cfg",
+                    "ini",
+                    "conf",
+                    "toml",
+                    "yml",
+                    "yaml",
+                    "json",
+                    "xml",
+                    "csv",
+                    "tsv",
+                    "html",
+                    "htm",
+                    "xhtml",
+                    "css",
+                    "scss",
+                    "sass",
+                    "less",
+                    "js",
+                    "mjs",
+                    "cjs",
+                    "jsx",
+                    "ts",
+                    "tsx",
+                    "py",
+                    "rb",
+                    "pl",
+                    "lua",
+                    "go",
+                    "rs",
+                    "java",
+                    "c",
+                    "cpp",
+                    "h",
+                    "hpp",
+                    "cs",
+                    "kt",
+                    "swift",
+                    "sh",
+                    "bash",
+                    "zsh",
+                    "fish",
+                    "ps1",
+                    "bat",
+                    "cmd",
+                    "sql",
+                    "diff",
+                    "patch",
+                    "tex",
+                    "adoc",
+                    "asciidoc",
+                    "env",
+                    "properties",
+                ]);
+
+                // Map a listing entry to one of the seven icon classes. Directories
+                // are always "dir"; files fall through extension → mime → other.
+                const classify = (e) => {
+                    if (e.type === "dir") return "dir";
+                    const dot = e.name.lastIndexOf(".");
+                    const ext =
+                        dot > 0 ? e.name.slice(dot + 1).toLowerCase() : "";
+                    if (ext && TEXT_EXTS.has(ext)) return "text";
+                    const m = e.mime || "";
+                    if (m.startsWith("image/")) return "image";
+                    if (m.startsWith("audio/")) return "audio";
+                    if (m.startsWith("video/")) return "video";
+                    if (m.startsWith("application/")) return "app";
+                    return "other";
+                };
+
                 function apiBase() {
                     return currentPath
                         ? "?path=" + encodeURIComponent(currentPath)
@@ -388,7 +512,9 @@
                             '<tr data-type="dir" data-path="' +
                             esc(upPath) +
                             '">' +
-                            '<td><span class="icon">▸</span>..</td><td class="size"></td><td></td></tr>';
+                            '<td><span class="icon k-other">' +
+                            ICONS.other +
+                            '</span>..</td><td class="size"></td><td></td></tr>';
                     }
                     let any = data.path !== "";
                     for (const e of data.entries) {
@@ -405,7 +531,7 @@
                                   '" download="' +
                                   esc(e.name) +
                                   '"';
-                        const icon = e.type === "dir" ? "▸" : "·";
+                        const kind = classify(e);
                         html +=
                             '<tr data-type="' +
                             e.type +
@@ -421,9 +547,11 @@
                                 : "") +
                             ">" +
                             "<td>" +
-                            (href ? "<a" + href + "'>" : "") +
-                            '<span class="icon">' +
-                            icon +
+                            (href ? "<a" + href + ">" : "") +
+                            "<span class='icon k-" +
+                            kind +
+                            "'>" +
+                            ICONS[kind] +
                             "</span>" +
                             esc(e.name) +
                             (href ? "</a>" : "") +

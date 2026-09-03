@@ -51,7 +51,7 @@ objects are the immutable `Config` and the (pure) `paths` helpers.
 | Method | Path | Behaviour |
 |---|---|---|
 | GET, HEAD | `/` | Rendered single-page UI (HEAD → empty body, same headers). |
-| GET | `/list?path=` | JSON directory listing (403 if download disabled, 404 if outside/not-a-dir). |
+| GET | `/list?path=` | JSON directory listing; each file entry carries a `mime` field (403 if download disabled, 404 if outside/not-a-dir). |
 | GET | `/download?path=` | 302 → `/file?path=...` (403/404). |
 | GET | `/file?path=` | File contents, streamed, `Content-Disposition: attachment` (403/404). |
 | POST | `/upload` | Multipart `files` + `path` → store in target dir (403/400/413, partial-failure results). |

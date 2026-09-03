@@ -127,16 +127,21 @@ def create_app(config: Config) -> FastAPI:
                             {
                                 "name": entry.name,
                                 "type": "dir",
+                                "mime": None,
                                 "size": None,
                                 "mtime": None,
                             }
                         )
                     else:
                         st = entry.stat(follow_symlinks=True)
+                        # MIME type drives the UI's icon class and matches the
+                        # Content-Type /file will serve (None if unknown).
+                        ctype, _ = mimetypes.guess_type(entry.name)
                         entries.append(
                             {
                                 "name": entry.name,
                                 "type": "file",
+                                "mime": ctype,
                                 "size": st.st_size,
                                 "mtime": int(st.st_mtime),
                             }

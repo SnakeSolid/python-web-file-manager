@@ -86,14 +86,15 @@ Serves the single-page UI (`index.html` + embedded CSS/JS as separate strings, c
     "path": "data/test",
     "parent": "test",
     "entries": [
-      { "name": "subdir",  "type": "dir",  "size": null, "mtime": null },
-      { "name": "file.txt","type": "file",  "size": 1234, "mtime": 1727000000 }
+      { "name": "subdir",  "type": "dir",  "mime": null, "size": null, "mtime": null },
+      { "name": "file.txt","type": "file",  "mime": "text/plain", "size": 1234, "mtime": 1727000000 }
     ]
   }
   ```
   - `path`: normalized relative path ("" for base dir, no leading/trailing slash).
   - `parent`: display name of the directory being listed — `basename(path)`, i.e. the label the breadcrumb's root link shows ("" for the base dir, e.g. `data/test` → `test`). Not the parent's relative path; the client derives the `..` navigation target from `path` itself.
   - `entries`: directories first, then files; each group alphabetical, case-insensitive (`key=str.lower`); `.`/`..` never listed (the UI renders `..` itself from `path`).
+  - `mime`: the MIME type the server guesses for the file via `mimetypes.guess_type` (the same type `/file` serves on download); `null` for directories and for files with an unrecognized extension. The client uses it to pick an icon class.
   - `size` (int bytes) and `mtime` (unix seconds) only for files; `null` for dirs.
 - **403** JSON error — upload/download disabled.
 - **404** JSON error — path outside base dir, not a directory, or doesn't exist.
