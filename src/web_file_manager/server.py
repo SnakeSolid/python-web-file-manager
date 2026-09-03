@@ -29,6 +29,7 @@ from fastapi.responses import (
 
 from .config import Config
 from .paths import rel_display, resolve, safe_filename, unique_name
+from .static import FAVICON_BYTES
 
 __all__ = ["create_app"]
 
@@ -105,6 +106,12 @@ def create_app(config: Config) -> FastAPI:
         if request.method == "HEAD":
             return HTMLResponse(config.index_html, headers={"Content-Length": "0"})
         return HTMLResponse(config.index_html)
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon() -> Response:
+        # Self-contained SVG served as image/svg+xml at the conventional
+        # /favicon.ico location so the browser shows the tab icon.
+        return Response(FAVICON_BYTES, media_type="image/svg+xml")
 
     @app.get("/list")
     async def list_dir(path: str = ""):

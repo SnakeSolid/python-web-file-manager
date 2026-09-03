@@ -61,7 +61,10 @@ change.
   via a `classify` helper that checks known-text extensions *before* the file's
   `mime` type, so source/data files with a spurious `application/*` MIME (e.g.
   `.rs`, `.ts`, `.sql`) still read as "text". Icons are inline SVG strings in
-  `index.html`; the server supplies `mime` on each `/list` file entry.
+  `index.html`; the server supplies `mime` on each `/list` file entry. The tab
+  icon is a separate self-contained `favicon.svg` (a folder + arrow), served as
+  `image/svg+xml` at `/favicon.ico` and referenced from `index.html`'s `<head>`; it
+  is baked in at import time like `index.html`, so it stays inline (no CDN).
 
 ## Style & lint
 

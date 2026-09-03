@@ -37,8 +37,9 @@ back.
 ```
                 ┌─────────────────────────── create_app(config) ───────────────────────────┐
   HTTP  ──►  Uvicorn (uvloop)  ──►  FastAPI  ──►  middleware  ──►  route handler  ──►  response
-                (threads per conn)     (routes)     (_no_store,      (GET /, /list,     (FileResponse /
-                                                 _body_cap)          /file, /download,    Redirect / JSON /
+                (threads per conn)     (routes)     (_no_store,      (GET /, /favicon.ico,
+                                                 _body_cap)          /list, /file,        (FileResponse /
+                                                                     /download,            Redirect / JSON /
                                                                      POST /upload)        HTMLResponse)
 ```
 
@@ -51,6 +52,7 @@ objects are the immutable `Config` and the (pure) `paths` helpers.
 | Method | Path | Behaviour |
 |---|---|---|
 | GET, HEAD | `/` | Rendered single-page UI (HEAD → empty body, same headers). |
+| GET | `/favicon.ico` | Self-contained SVG tab icon (`image/svg+xml`); always available, not feature-gated. |
 | GET | `/list?path=` | JSON directory listing; each file entry carries a `mime` field (403 if download disabled, 404 if outside/not-a-dir). |
 | GET | `/download?path=` | 302 → `/file?path=...` (403/404). |
 | GET | `/file?path=` | File contents, streamed, `Content-Disposition: attachment` (403/404). |
