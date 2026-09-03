@@ -149,7 +149,9 @@ def create_app(config: Config) -> FastAPI:
         files = [e for e in entries if e["type"] == "file"]
 
         rel = rel_display(resolved, config.base_dir)
-        parent = os.path.dirname(rel) if rel else ""
+        # ``parent`` is the display name of the directory being listed (used by
+        # the client as the breadcrumb's base label). Empty at the base dir.
+        parent = os.path.basename(rel) if rel else ""
         return {"path": rel, "parent": parent, "entries": dirs + files}
 
     @app.get("/download")

@@ -53,7 +53,7 @@ change.
   delete the temp file, continue with the remaining files, and record a per-file
   error (partial-failure semantics — the batch is still HTTP 200).
 - **Listing**: directories first then files, each case-insensitive alphabetical
-  (`key=str.lower`); `.`/`..` are never listed (the UI renders `..` from `parent`).
+  (`key=str.lower`); `.`/`..` are never listed (the UI renders `..` from `path`).
 - **Static UI**: one self-contained HTML document, no external fonts/icons/CDN; the
   two feature flags are baked into `<meta>` tags the JS reads on load.
 

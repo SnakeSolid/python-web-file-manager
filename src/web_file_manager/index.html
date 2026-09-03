@@ -1,335 +1,646 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Web File Manager</title>
-<meta name="wm-upload" content="__UPLOAD__">
-<meta name="wm-download" content="__DOWNLOAD__">
-<style>
-:root {
-  --bg: #f7f8fa; --panel: #ffffff; --ink: #1c1e21; --muted: #6b7280;
-  --line: #e3e6ea; --accent: #2563eb; --row-hover: #eef2ff;
-  --ok: #16a34a; --err: #dc2626;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-}
-.header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line);
-}
-.header h1 { font-size: 17px; margin: 0; font-weight: 600; }
-.header .addr { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Web File Manager</title>
+        <meta name="wm-upload" content="__UPLOAD__" />
+        <meta name="wm-download" content="__DOWNLOAD__" />
+        <style>
+            :root {
+                --bg: #f7f8fa;
+                --panel: #ffffff;
+                --ink: #1c1e21;
+                --muted: #6b7280;
+                --line: #e3e6ea;
+                --accent: #2563eb;
+                --row-hover: #eef2ff;
+                --ok: #16a34a;
+                --err: #dc2626;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--ink);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+                font-size: 14px;
+            }
+            .header {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                padding: 12px 20px;
+                background: var(--panel);
+                border-bottom: 1px solid var(--line);
+            }
+            .header h1 {
+                font-size: 17px;
+                margin: 0;
+                font-weight: 600;
+            }
+            .header .addr {
+                color: var(--muted);
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                font-size: 13px;
+            }
 
-.panel { background: var(--panel); border-bottom: 1px solid var(--line); padding: 16px 20px; }
-.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
-.upload-target { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-.upload-target b { color: var(--ink); }
+            .panel {
+                background: var(--panel);
+                border-bottom: 1px solid var(--line);
+                padding: 16px 20px;
+            }
+            .panel h2 {
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: var(--muted);
+                margin: 0 0 10px;
+            }
+            .upload-target {
+                font-family: ui-monospace, Menlo, monospace;
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 10px;
+            }
+            .upload-target b {
+                color: var(--ink);
+            }
 
-.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-button {
-  font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--panel);
-  color: var(--ink); border-radius: 6px; padding: 6px 12px;
-}
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-button:disabled { opacity: .5; cursor: not-allowed; }
-button.linklike { border: none; background: none; color: var(--err); padding: 2px 4px; font-size: 13px; }
+            .row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            button {
+                font: inherit;
+                cursor: pointer;
+                border: 1px solid var(--line);
+                background: var(--panel);
+                color: var(--ink);
+                border-radius: 6px;
+                padding: 6px 12px;
+            }
+            button.primary {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+            button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            button.linklike {
+                border: none;
+                background: none;
+                color: var(--err);
+                padding: 2px 4px;
+                font-size: 13px;
+            }
 
-.queue { list-style: none; margin: 10px 0 0; padding: 0; max-height: 220px; overflow: auto; }
-.queue li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--line); }
-.queue li .name { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.queue li .size { color: var(--muted); font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-.queue li .status { font-size: 12px; min-width: 90px; text-align: right; }
-.queue li .status.ok { color: var(--ok); }
-.queue li .status.fail { color: var(--err); }
+            .queue {
+                list-style: none;
+                margin: 10px 0 0;
+                padding: 0;
+                max-height: 220px;
+                overflow: auto;
+            }
+            .queue li {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 4px 0;
+                border-bottom: 1px solid var(--line);
+            }
+            .queue li .name {
+                flex: 1 1 auto;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .queue li .size {
+                color: var(--muted);
+                font-family: ui-monospace, Menlo, monospace;
+                font-size: 12px;
+            }
+            .queue li .status {
+                font-size: 12px;
+                min-width: 90px;
+                text-align: right;
+            }
+            .queue li .status.ok {
+                color: var(--ok);
+            }
+            .queue li .status.fail {
+                color: var(--err);
+            }
 
-.progress { margin-top: 12px; }
-.progress .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
-.progress .bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
-.progress .label { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: ui-monospace, Menlo, monospace; }
+            .progress {
+                margin-top: 12px;
+            }
+            .progress .bar {
+                height: 8px;
+                background: var(--line);
+                border-radius: 4px;
+                overflow: hidden;
+            }
+            .progress .bar > span {
+                display: block;
+                height: 100%;
+                width: 0;
+                background: var(--accent);
+                transition: width 0.15s;
+            }
+            .progress .label {
+                font-size: 12px;
+                color: var(--muted);
+                margin-top: 4px;
+                font-family: ui-monospace, Menlo, monospace;
+            }
 
-.crumb { padding: 14px 20px 6px; }
-.crumb .sep { color: var(--muted); margin: 0 4px; }
-.crumb a { color: var(--accent); text-decoration: none; cursor: pointer; }
-.crumb a:hover { text-decoration: underline; }
-.crumb .cur { color: var(--ink); }
+            .crumb {
+                padding: 14px 20px 6px;
+            }
+            .crumb .sep {
+                color: var(--muted);
+                margin: 0 4px;
+            }
+            .crumb a {
+                color: var(--accent);
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .crumb a:hover {
+                text-decoration: underline;
+            }
+            .crumb .cur {
+                color: var(--ink);
+            }
 
-.table-wrap { padding: 0 20px 20px; }
-table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); }
-thead th {
-  text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em;
-  color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel);
-}
-thead th.size { text-align: right; }
-tbody td { padding: 7px 12px; border-bottom: 1px solid var(--line); }
-tbody tr:last-child td { border-bottom: none; }
-tbody tr { cursor: pointer; }
-tbody tr:hover { background: var(--row-hover); }
-td.size { text-align: right; font-family: ui-monospace, Menlo, monospace; color: var(--muted); }
-.icon { display: inline-block; width: 18px; margin-right: 8px; color: var(--accent); }
-.notice { margin: 20px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
-.empty { padding: 30px; text-align: center; color: var(--muted); }
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>Web File Manager</h1>
-  <span class="addr" id="addr"></span>
-</div>
+            .table-wrap {
+                padding: 0 20px 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background: var(--panel);
+                border: 1px solid var(--line);
+            }
+            thead th {
+                text-align: left;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                color: var(--muted);
+                padding: 8px 12px;
+                border-bottom: 1px solid var(--line);
+                position: sticky;
+                top: 0;
+                background: var(--panel);
+            }
+            thead th.size {
+                text-align: right;
+            }
+            tbody td {
+                padding: 7px 12px;
+                border-bottom: 1px solid var(--line);
+            }
+            tbody tr:last-child td {
+                border-bottom: none;
+            }
+            tbody tr {
+                cursor: pointer;
+            }
+            tbody tr:hover {
+                background: var(--row-hover);
+            }
+            td.size {
+                text-align: right;
+                font-family: ui-monospace, Menlo, monospace;
+                color: var(--muted);
+            }
+            .icon {
+                display: inline-block;
+                width: 18px;
+                margin-right: 8px;
+                color: var(--accent);
+            }
+            .notice {
+                margin: 20px;
+                padding: 14px 16px;
+                background: var(--panel);
+                border: 1px solid var(--line);
+                color: var(--muted);
+            }
+            .empty {
+                padding: 30px;
+                text-align: center;
+                color: var(--muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Web File Manager</h1>
+            <span class="addr" id="addr"></span>
+        </div>
 
-<div class="panel" id="upload-panel" hidden>
-  <h2>Upload to <span class="upload-target"><b id="upload-target-path"></b></span></h2>
-  <div class="row">
-    <button id="add-files-btn">Add files</button>
-    <input type="file" id="file-input" multiple hidden>
-    <button id="upload-btn" class="primary" disabled>Upload</button>
-    <span id="upload-hint" class="upload-target"></span>
-  </div>
-  <ul class="queue" id="queue"></ul>
-  <div class="progress" id="progress" hidden>
-    <div class="bar"><span id="progress-fill"></span></div>
-    <div class="label" id="progress-label"></div>
-  </div>
-</div>
+        <div class="panel" id="upload-panel" hidden>
+            <h2>
+                Upload to
+                <span class="upload-target"
+                    ><b id="upload-target-path"></b
+                ></span>
+            </h2>
+            <div class="row">
+                <button id="add-files-btn">Add files</button>
+                <input type="file" id="file-input" multiple hidden />
+                <button id="upload-btn" class="primary" disabled>Upload</button>
+                <span id="upload-hint" class="upload-target"></span>
+            </div>
+            <ul class="queue" id="queue"></ul>
+            <div class="progress" id="progress" hidden>
+                <div class="bar"><span id="progress-fill"></span></div>
+                <div class="label" id="progress-label"></div>
+            </div>
+        </div>
 
-<div class="crumb" id="crumb"></div>
-<div class="table-wrap" id="listing"></div>
+        <div class="crumb" id="crumb"></div>
+        <div class="table-wrap" id="listing"></div>
 
-<script>
-"use strict";
-(function () {
-  const meta = (n) => document.querySelector('meta[name="' + n + '"]');
-  const uploadEnabled = meta("wm-upload").content === "true";
-  const downloadEnabled = meta("wm-download").content === "true";
-  const addrEl = document.getElementById("addr");
-  addrEl.textContent = location.host;
+        <script>
+            "use strict";
+            (function () {
+                const meta = (n) =>
+                    document.querySelector('meta[name="' + n + '"]');
+                const uploadEnabled = meta("wm-upload").content === "true";
+                const downloadEnabled = meta("wm-download").content === "true";
+                const addrEl = document.getElementById("addr");
+                addrEl.textContent = location.host;
 
-  // Current directory (relative path; "" = base).
-  let currentPath = "";
-  let basePathName = "";
-  const queue = new Map(); // key = name|size|lastModified
-  let uploadInFlight = false;
+                // Current directory (relative path; "" = base).
+                let currentPath = "";
+                let basePathName = "";
+                const queue = new Map(); // key = name|size|lastModified
+                let uploadInFlight = false;
 
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
-    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
-  ));
-  const fmtSize = (b) => {
-    if (b == null) return "";
-    if (b < 1024) return b + " B";
-    const units = ["KiB", "MiB", "GiB", "TiB"];
-    let i = -1;
-    do { b /= 1024; i++; } while (b >= 1024 && i < units.length - 1);
-    return b.toFixed(b >= 100 || i === 0 ? 0 : 1) + " " + units[i];
-  };
-  const fmtDate = (ts) => {
-    if (ts == null) return "";
-    const d = new Date(ts * 1000);
-    return d.toISOString().slice(0, 10);
-  };
+                const esc = (s) =>
+                    String(s).replace(
+                        /[&<>"']/g,
+                        (c) =>
+                            ({
+                                "&": "&amp;",
+                                "<": "&lt;",
+                                ">": "&gt;",
+                                '"': "&quot;",
+                                "'": "&#39;",
+                            })[c],
+                    );
+                const fmtSize = (b) => {
+                    if (b == null) return "";
+                    if (b < 1024) return b + " B";
+                    const units = ["KiB", "MiB", "GiB", "TiB"];
+                    let i = -1;
+                    do {
+                        b /= 1024;
+                        i++;
+                    } while (b >= 1024 && i < units.length - 1);
+                    return (
+                        b.toFixed(b >= 100 || i === 0 ? 0 : 1) + " " + units[i]
+                    );
+                };
+                const fmtDate = (ts) => {
+                    if (ts == null) return "";
+                    const d = new Date(ts * 1000);
+                    return d.toISOString().slice(0, 10);
+                };
 
-  function apiBase() {
-    return (currentPath ? "?path=" + encodeURIComponent(currentPath) : "");
-  }
+                function apiBase() {
+                    return currentPath
+                        ? "?path=" + encodeURIComponent(currentPath)
+                        : "";
+                }
 
-  function renderCrumb() {
-    const crumb = document.getElementById("crumb");
-    if (!downloadEnabled) { crumb.innerHTML = ""; return; }
-    const segs = currentPath ? currentPath.split("/") : [];
-    let html = '<a data-path="">';
-    html += esc(basePathName || "base");
-    html += "</a>";
-    let acc = "";
-    for (let i = 0; i < segs.length; i++) {
-      acc += (i ? "/" : "") + segs[i];
-      const isLast = i === segs.length - 1;
-      html += '<span class="sep">›</span>';
-      if (isLast) html += '<span class="cur">' + esc(segs[i]) + "</span>";
-      else html += '<a data-path="' + esc(acc) + '">' + esc(segs[i]) + "</a>";
-    }
-    crumb.innerHTML = html;
-    crumb.querySelectorAll("a").forEach((a) =>
-      a.addEventListener("click", () => navigate(a.getAttribute("data-path"))));
-  }
+                // Relative path of the parent of a relative path. "" (the base) has
+                // no parent; a one-level path's parent is the base (""), deeper paths
+                // keep everything before the last "/".
+                const parentPath = (p) => {
+                    const s = String(p || "");
+                    if (s === "") return ""; // base: no .. row
+                    const i = s.lastIndexOf("/");
+                    return i < 0 ? "" : s.slice(0, i); // one-level: parent is base ("")
+                };
 
-  function renderTable(data) {
-    const wrap = document.getElementById("listing");
-    if (data.parent) basePathName = data.parent;
-    let html = "<table><thead><tr><th>Name</th><th class='size'>Size</th><th>Modified</th></tr></thead><tbody>";
-    if (data.parent) {
-      html += '<tr data-type="dir" data-path="' + esc(data.parent) + '">' +
-              '<td><span class="icon">▸</span>..</td><td class="size"></td><td></td></tr>';
-    }
-    let any = !!data.parent;
-    for (const e of data.entries) {
-      any = true;
-      const href = e.type === "dir"
-        ? ''
-        : ' href="/file?path=' + encodeURIComponent(currentPath ? currentPath + "/" + e.name : e.name) + '" download="' + esc(e.name) + '"';
-      const icon = e.type === "dir" ? "▸" : "·";
-      html += '<tr data-type="' + e.type + '"' +
-        (e.type === "dir" ? ' data-path="' + esc(currentPath ? currentPath + "/" + e.name : e.name) + '"' : "") +
-        '>' +
-        '<td>' + (href ? '<a' + href + "'>" : "") + '<span class="icon">' + icon + "</span>" + esc(e.name) + (href ? "</a>" : "") +
-        "</td><td class='size'>" + (e.type === "file" ? esc(fmtSize(e.size)) : "") +
-        "</td><td>" + (e.type === "file" ? esc(fmtDate(e.mtime)) : "") + "</td></tr>";
-    }
-    html += "</tbody></table>";
-    if (!any) html = '<div class="notice">This directory is empty.</div>';
-    wrap.innerHTML = html;
-    wrap.querySelectorAll("tr[data-type=dir]").forEach((tr) =>
-      tr.addEventListener("click", () => navigate(tr.getAttribute("data-path"))));
-  }
+                function renderCrumb() {
+                    const crumb = document.getElementById("crumb");
+                    if (!downloadEnabled) {
+                        crumb.innerHTML = "";
+                        return;
+                    }
+                    const segs = currentPath ? currentPath.split("/") : [];
+                    let html = '<a data-path="">';
+                    html += esc(basePathName || "base");
+                    html += "</a>";
+                    let acc = "";
+                    for (let i = 0; i < segs.length; i++) {
+                        acc += (i ? "/" : "") + segs[i];
+                        const isLast = i === segs.length - 1;
+                        html += '<span class="sep">›</span>';
+                        if (isLast)
+                            html +=
+                                '<span class="cur">' + esc(segs[i]) + "</span>";
+                        else
+                            html +=
+                                '<a data-path="' +
+                                esc(acc) +
+                                '">' +
+                                esc(segs[i]) +
+                                "</a>";
+                    }
+                    crumb.innerHTML = html;
+                    crumb
+                        .querySelectorAll("a")
+                        .forEach((a) =>
+                            a.addEventListener("click", () =>
+                                navigate(a.getAttribute("data-path")),
+                            ),
+                        );
+                }
 
-  function renderDownloadDisabled() {
-    document.getElementById("crumb").innerHTML = "";
-    document.getElementById("listing").innerHTML =
-      '<div class="notice">Download is disabled on this server.</div>';
-  }
+                function renderTable(data) {
+                    const wrap = document.getElementById("listing");
+                    if (data.parent) basePathName = data.parent;
+                    let html =
+                        "<table><thead><tr><th>Name</th><th class='size'>Size</th><th>Modified</th></tr></thead><tbody>";
+                    const upPath = parentPath(data.path);
+                    if (data.path !== "") {
+                        html +=
+                            '<tr data-type="dir" data-path="' +
+                            esc(upPath) +
+                            '">' +
+                            '<td><span class="icon">▸</span>..</td><td class="size"></td><td></td></tr>';
+                    }
+                    let any = data.path !== "";
+                    for (const e of data.entries) {
+                        any = true;
+                        const href =
+                            e.type === "dir"
+                                ? ""
+                                : ' href="/file?path=' +
+                                  encodeURIComponent(
+                                      currentPath
+                                          ? currentPath + "/" + e.name
+                                          : e.name,
+                                  ) +
+                                  '" download="' +
+                                  esc(e.name) +
+                                  '"';
+                        const icon = e.type === "dir" ? "▸" : "·";
+                        html +=
+                            '<tr data-type="' +
+                            e.type +
+                            '"' +
+                            (e.type === "dir"
+                                ? ' data-path="' +
+                                  esc(
+                                      currentPath
+                                          ? currentPath + "/" + e.name
+                                          : e.name,
+                                  ) +
+                                  '"'
+                                : "") +
+                            ">" +
+                            "<td>" +
+                            (href ? "<a" + href + "'>" : "") +
+                            '<span class="icon">' +
+                            icon +
+                            "</span>" +
+                            esc(e.name) +
+                            (href ? "</a>" : "") +
+                            "</td><td class='size'>" +
+                            (e.type === "file" ? esc(fmtSize(e.size)) : "") +
+                            "</td><td>" +
+                            (e.type === "file" ? esc(fmtDate(e.mtime)) : "") +
+                            "</td></tr>";
+                    }
+                    html += "</tbody></table>";
+                    if (!any)
+                        html =
+                            '<div class="notice">This directory is empty.</div>';
+                    wrap.innerHTML = html;
+                    wrap.querySelectorAll("tr[data-type=dir]").forEach((tr) =>
+                        tr.addEventListener("click", () =>
+                            navigate(tr.getAttribute("data-path")),
+                        ),
+                    );
+                }
 
-  async function navigate(path) {
-    currentPath = path || "";
-    renderCrumb();
-    if (!downloadEnabled) { renderDownloadDisabled(); return; }
-    const url = "/list" + apiBase();
-    const resp = await fetch(url);
-    if (resp.status === 403) {
-      document.getElementById("listing").innerHTML =
-        '<div class="notice">Listing is disabled on this server.</div>';
-      return;
-    }
-    if (!resp.ok) {
-      document.getElementById("listing").innerHTML =
-        '<div class="notice">Could not list: ' + esc(resp.status) + "</div>";
-      return;
-    }
-    const data = await resp.json();
-    basePathName = data.path ? data.path.split("/").pop() : "base";
-    renderCrumb();
-    renderTable(data);
-    updateUploadTarget();
-  }
+                function renderDownloadDisabled() {
+                    document.getElementById("crumb").innerHTML = "";
+                    document.getElementById("listing").innerHTML =
+                        '<div class="notice">Download is disabled on this server.</div>';
+                }
 
-  // ---- Upload UI ----
-  function keyOf(f) { return f.name + "|" + f.size + "|" + (f.lastModified || 0); }
-  function refreshUploadUI() {
-    const n = queue.size;
-    const btn = document.getElementById("upload-btn");
-    btn.disabled = n === 0 || uploadInFlight;
-    const hint = document.getElementById("upload-hint");
-    hint.textContent = n ? n + " file" + (n > 1 ? "s" : "") + " queued" : "";
-  }
-  function renderQueue() {
-    const ul = document.getElementById("queue");
-    ul.innerHTML = "";
-    for (const [key, item] of queue) {
-      const li = document.createElement("li");
-      const name = document.createElement("span");
-      name.className = "name"; name.textContent = item.file.name; name.title = item.file.name;
-      const size = document.createElement("span");
-      size.className = "size"; size.textContent = fmtSize(item.file.size);
-      const status = document.createElement("span");
-      status.className = "status " + (item.statusClass || ""); status.textContent = item.statusText || "";
-      const rm = document.createElement("button");
-      rm.className = "linklike"; rm.textContent = "✕"; rm.title = "Remove";
-      rm.addEventListener("click", () => { queue.delete(key); renderQueue(); refreshUploadUI(); });
-      li.append(name, size, status, rm);
-      ul.appendChild(li);
-    }
-  }
-  function updateUploadTarget() {
-    const el = document.getElementById("upload-target-path");
-    if (el) el.textContent = currentPath ? currentPath : "/";
-  }
+                async function navigate(path) {
+                    currentPath = path || "";
+                    renderCrumb();
+                    if (!downloadEnabled) {
+                        renderDownloadDisabled();
+                        return;
+                    }
+                    const url = "/list" + apiBase();
+                    const resp = await fetch(url);
+                    if (resp.status === 403) {
+                        document.getElementById("listing").innerHTML =
+                            '<div class="notice">Listing is disabled on this server.</div>';
+                        return;
+                    }
+                    if (!resp.ok) {
+                        document.getElementById("listing").innerHTML =
+                            '<div class="notice">Could not list: ' +
+                            esc(resp.status) +
+                            "</div>";
+                        return;
+                    }
+                    const data = await resp.json();
+                    basePathName = data.path
+                        ? data.path.split("/").pop()
+                        : "base";
+                    renderCrumb();
+                    renderTable(data);
+                    updateUploadTarget();
+                }
 
-  function setupUpload() {
-    const panel = document.getElementById("upload-panel");
-    if (!uploadEnabled) {
-      panel.remove();
-      return;
-    }
-    panel.hidden = false; // the panel starts `hidden`; reveal it when upload is on
-    updateUploadTarget();
-    const input = document.getElementById("file-input");
-    document.getElementById("add-files-btn").addEventListener("click", () => input.click());
-    input.addEventListener("change", () => {
-      for (const f of input.files) {
-        const k = keyOf(f);
-        if (!queue.has(k)) {
-          queue.set(k, { file: f, statusText: "queued", statusClass: "" });
-        }
-      }
-      input.value = "";
-      renderQueue();
-      refreshUploadUI();
-    });
-    document.getElementById("upload-btn").addEventListener("click", doUpload);
-  }
+                // ---- Upload UI ----
+                function keyOf(f) {
+                    return f.name + "|" + f.size + "|" + (f.lastModified || 0);
+                }
+                function refreshUploadUI() {
+                    const n = queue.size;
+                    const btn = document.getElementById("upload-btn");
+                    btn.disabled = n === 0 || uploadInFlight;
+                    const hint = document.getElementById("upload-hint");
+                    hint.textContent = n
+                        ? n + " file" + (n > 1 ? "s" : "") + " queued"
+                        : "";
+                }
+                function renderQueue() {
+                    const ul = document.getElementById("queue");
+                    ul.innerHTML = "";
+                    for (const [key, item] of queue) {
+                        const li = document.createElement("li");
+                        const name = document.createElement("span");
+                        name.className = "name";
+                        name.textContent = item.file.name;
+                        name.title = item.file.name;
+                        const size = document.createElement("span");
+                        size.className = "size";
+                        size.textContent = fmtSize(item.file.size);
+                        const status = document.createElement("span");
+                        status.className = "status " + (item.statusClass || "");
+                        status.textContent = item.statusText || "";
+                        const rm = document.createElement("button");
+                        rm.className = "linklike";
+                        rm.textContent = "✕";
+                        rm.title = "Remove";
+                        rm.addEventListener("click", () => {
+                            queue.delete(key);
+                            renderQueue();
+                            refreshUploadUI();
+                        });
+                        li.append(name, size, status, rm);
+                        ul.appendChild(li);
+                    }
+                }
+                function updateUploadTarget() {
+                    const el = document.getElementById("upload-target-path");
+                    if (el) el.textContent = currentPath ? currentPath : "/";
+                }
 
-  async function doUpload() {
-    const files = [...queue.values()].map((i) => i.file);
-    if (!files.length) return;
-    uploadInFlight = true;
-    refreshUploadUI();
-    for (const i of queue.values()) { i.statusText = "uploading"; i.statusClass = ""; }
-    renderQueue();
+                function setupUpload() {
+                    const panel = document.getElementById("upload-panel");
+                    if (!uploadEnabled) {
+                        panel.remove();
+                        return;
+                    }
+                    panel.hidden = false; // the panel starts `hidden`; reveal it when upload is on
+                    updateUploadTarget();
+                    const input = document.getElementById("file-input");
+                    document
+                        .getElementById("add-files-btn")
+                        .addEventListener("click", () => input.click());
+                    input.addEventListener("change", () => {
+                        for (const f of input.files) {
+                            const k = keyOf(f);
+                            if (!queue.has(k)) {
+                                queue.set(k, {
+                                    file: f,
+                                    statusText: "queued",
+                                    statusClass: "",
+                                });
+                            }
+                        }
+                        input.value = "";
+                        renderQueue();
+                        refreshUploadUI();
+                    });
+                    document
+                        .getElementById("upload-btn")
+                        .addEventListener("click", doUpload);
+                }
 
-    const fd = new FormData();
-    fd.append("path", currentPath);
-    for (const f of files) fd.append("files", f, f.name);
+                async function doUpload() {
+                    const files = [...queue.values()].map((i) => i.file);
+                    if (!files.length) return;
+                    uploadInFlight = true;
+                    refreshUploadUI();
+                    for (const i of queue.values()) {
+                        i.statusText = "uploading";
+                        i.statusClass = "";
+                    }
+                    renderQueue();
 
-    const progress = document.getElementById("progress");
-    const fill = document.getElementById("progress-fill");
-    const label = document.getElementById("progress-label");
-    progress.hidden = false;
+                    const fd = new FormData();
+                    fd.append("path", currentPath);
+                    for (const f of files) fd.append("files", f, f.name);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/upload");
-    const total = files.reduce((s, f) => s + f.size, 0);
-    xhr.upload.onprogress = (ev) => {
-      if (ev.lengthComputable) {
-        const pct = (ev.loaded / ev.total) * 100;
-        fill.style.width = pct.toFixed(1) + "%";
-        label.textContent = ev.loaded + " / " + ev.total + " bytes (" + pct.toFixed(0) + "%)";
-      }
-    };
-    await new Promise((resolve) => {
-      xhr.onload = () => resolve();
-      xhr.onerror = () => resolve();
-      xhr.send(fd);
-    });
+                    const progress = document.getElementById("progress");
+                    const fill = document.getElementById("progress-fill");
+                    const label = document.getElementById("progress-label");
+                    progress.hidden = false;
 
-    // Apply per-file results.
-    let results = [];
-    try { results = JSON.parse(xhr.responseText).results || []; } catch (e) {}
-    let anyFail = false;
-    files.forEach((f, idx) => {
-      const item = queue.get(keyOf(f));
-      if (!item) return;
-      const r = results[idx] || {};
-      if (r.error) { item.statusText = "✗ " + r.error; item.statusClass = "fail"; anyFail = true; }
-      else { item.statusText = "✓ " + (r.stored !== f.name ? "→ " + r.stored : "done"); item.statusClass = "ok"; }
-    });
-    renderQueue();
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/upload");
+                    const total = files.reduce((s, f) => s + f.size, 0);
+                    xhr.upload.onprogress = (ev) => {
+                        if (ev.lengthComputable) {
+                            const pct = (ev.loaded / ev.total) * 100;
+                            fill.style.width = pct.toFixed(1) + "%";
+                            label.textContent =
+                                ev.loaded +
+                                " / " +
+                                ev.total +
+                                " bytes (" +
+                                pct.toFixed(0) +
+                                "%)";
+                        }
+                    };
+                    await new Promise((resolve) => {
+                        xhr.onload = () => resolve();
+                        xhr.onerror = () => resolve();
+                        xhr.send(fd);
+                    });
 
-    // Success (even with per-file failures) -> clear the queue and refetch.
-    queue.clear();
-    renderQueue();
-    progress.hidden = true;
-    fill.style.width = "0";
-    label.textContent = "";
-    uploadInFlight = false;
-    refreshUploadUI();
-    navigate(currentPath);
-  }
+                    // Apply per-file results.
+                    let results = [];
+                    try {
+                        results = JSON.parse(xhr.responseText).results || [];
+                    } catch (e) {}
+                    let anyFail = false;
+                    files.forEach((f, idx) => {
+                        const item = queue.get(keyOf(f));
+                        if (!item) return;
+                        const r = results[idx] || {};
+                        if (r.error) {
+                            item.statusText = "✗ " + r.error;
+                            item.statusClass = "fail";
+                            anyFail = true;
+                        } else {
+                            item.statusText =
+                                "✓ " +
+                                (r.stored !== f.name
+                                    ? "→ " + r.stored
+                                    : "done");
+                            item.statusClass = "ok";
+                        }
+                    });
+                    renderQueue();
 
-  setupUpload();
-  if (!downloadEnabled) renderDownloadDisabled();
-  else navigate("");
-})();
-</script>
-</body>
+                    // Success (even with per-file failures) -> clear the queue and refetch.
+                    queue.clear();
+                    renderQueue();
+                    progress.hidden = true;
+                    fill.style.width = "0";
+                    label.textContent = "";
+                    uploadInFlight = false;
+                    refreshUploadUI();
+                    navigate(currentPath);
+                }
+
+                setupUpload();
+                if (!downloadEnabled) renderDownloadDisabled();
+                else navigate("");
+            })();
+        </script>
+    </body>
 </html>

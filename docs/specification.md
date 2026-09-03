@@ -84,16 +84,16 @@ Serves the single-page UI (`index.html` + embedded CSS/JS as separate strings, c
   ```json
   {
     "path": "data/test",
-    "parent": "data",
+    "parent": "test",
     "entries": [
       { "name": "subdir",  "type": "dir",  "size": null, "mtime": null },
-      { "name": "file.txt","type": "file", "size": 1234, "mtime": 1727000000 }
+      { "name": "file.txt","type": "file",  "size": 1234, "mtime": 1727000000 }
     ]
   }
   ```
   - `path`: normalized relative path ("" for base dir, no leading/trailing slash).
-  - `parent`: normalized relative path of the parent (only present and non-empty when `path` is non-empty).
-  - `entries`: directories first, then files; each group alphabetical, case-insensitive (`key=str.lower`); `.`/`..` never listed (the UI renders `..` itself from `parent`).
+  - `parent`: display name of the directory being listed — `basename(path)`, i.e. the label the breadcrumb's root link shows ("" for the base dir, e.g. `data/test` → `test`). Not the parent's relative path; the client derives the `..` navigation target from `path` itself.
+  - `entries`: directories first, then files; each group alphabetical, case-insensitive (`key=str.lower`); `.`/`..` never listed (the UI renders `..` itself from `path`).
   - `size` (int bytes) and `mtime` (unix seconds) only for files; `null` for dirs.
 - **403** JSON error — upload/download disabled.
 - **404** JSON error — path outside base dir, not a directory, or doesn't exist.
@@ -163,7 +163,7 @@ One HTML document, two stacked sections, both visible:
 - Dark-on-light or light-on-dark neutral palette; system font stack; no external fonts/icons. Inline SVG or Unicode glyphs (`▸`, `🗀`-free — use text) for folder/file indicators.
 - The listing table has fixed headers (name/size/modified), row hover, right-aligned monospace size column.
 - **Breadcrumb** is built client-side from the current `path`: a clickable segment per path component (last segment is plain text). Empty `path` renders only the base-dir name from the `/list` response meta.
-- `..` row: present whenever `parent` is non-empty; clicking it loads `parent`.
+- `..` row: present whenever `path` is non-empty (i.e. not the base dir); clicking it navigates to `path`'s parent (the client computes the parent's relative path from `path` itself).
 - Rows are clickable: directories → navigate; files → trigger browser download via `<a href="/file?path=...">` (plain anchor, `download` attribute with basename, so it also works middle-clicked).
 
 ### 5.2 Upload dialog (per spec §"Upload interface")
