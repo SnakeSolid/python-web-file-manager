@@ -58,6 +58,6 @@ and logs a warning to stderr.
 | Deployment & operations | [docs/deployment.md](./docs/deployment.md) |
 | Functional specification | [docs/specification.md](./docs/specification.md) |
 
-## Maintainers
-
-Shabanov Anton — <iamshabanov@yandex.ru>
+## License
+ 
+This project is licensed under the [MIT License](LICENSE).
