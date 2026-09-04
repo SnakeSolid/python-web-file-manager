@@ -11,8 +11,10 @@ are the body-cap middleware (413) and the per-file upload store loop.
 from __future__ import annotations
 
 import json
+import logging
 import mimetypes
 import os
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -33,6 +35,8 @@ from .static import FAVICON_BYTES
 
 __all__ = ["create_app"]
 
+_log = logging.getLogger(__name__)
+
 # 100 MiB per-request upload cap (spec §10).
 _BODY_CAP = 100 * 1024 * 1024
 # Stream upload bodies to disk in 1 MiB chunks (spec §4.5).
@@ -45,6 +49,28 @@ def create_app(config: Config) -> FastAPI:
     app.state.config = config
 
     # ------------------------------------------------------------ middleware
+
+    @app.middleware("http")
+    async def _request_log(request: Request, call_next):
+        # One line per request: method, path, status, client, duration (ms).
+        # ``request.client`` may be None under unusual transports; guard for it.
+        client = request.client.host if request.client else "-"
+        start = time.perf_counter()
+        try:
+            response = await call_next(request)
+        except Exception:
+            _log.exception("unhandled error on %s %s", request.method, request.url.path)
+            raise
+        duration_ms = (time.perf_counter() - start) * 1000.0
+        _log.info(
+            "%s %s -> %d (%s, %.1fms)",
+            request.method,
+            request.url.path,
+            response.status_code,
+            client,
+            duration_ms,
+        )
+        return response
 
     @app.middleware("http")
     async def _no_store(request: Request, call_next):
@@ -69,6 +95,13 @@ def create_app(config: Config) -> FastAPI:
                 except ValueError:
                     length = 0
                 if length > _BODY_CAP:
+                    _log.warning(
+                        "request body too large: %s %s content-length=%d cap=%d",
+                        request.method,
+                        request.url.path,
+                        length,
+                        _BODY_CAP,
+                    )
                     return Response(
                         status_code=413,
                         content=json.dumps({"error": "request body too large"}),
@@ -93,6 +126,12 @@ def create_app(config: Config) -> FastAPI:
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
         # Remap 422 (bad/missing form-data) to 400 for the upload endpoint (spec §6.4).
+        _log.warning(
+            "validation error on %s %s: %s",
+            request.method,
+            request.url.path,
+            exc.errors(),
+        )
         return JSONResponse(
             status_code=400,
             content={"error": "invalid form data"},
@@ -268,6 +307,12 @@ async def _store_upload_file(
                 size += len(chunk)
         os.replace(tmp, final)
     except OSError:
+        _log.warning(
+            "upload write failed for %r (target=%s)",
+            original,
+            target_dir,
+            exc_info=True,
+        )
         try:
             tmp.unlink(missing_ok=True)
         except OSError:
@@ -278,6 +323,7 @@ async def _store_upload_file(
             "size": None,
             "error": "write failed",
         }
+    _log.info("stored upload %r -> %s (%d bytes)", original, final.name, size)
     return {
         "original": original,
         "stored": final.name,

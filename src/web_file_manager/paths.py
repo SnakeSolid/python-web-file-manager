@@ -8,12 +8,15 @@ base directory?". All of them fail *closed* — an invalid or escaping path yiel
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import urllib.parse
 from pathlib import Path
 
 __all__ = ["rel_display", "resolve", "safe_filename", "unique_name"]
+
+_log = logging.getLogger(__name__)
 
 # Maximum length of a sanitized filename in UTF-8 bytes.
 _MAX_FILENAME_BYTES = 255
@@ -45,6 +48,14 @@ def resolve(base_dir: Path, rel: str) -> Path | None:
     try:
         _ = resolved.relative_to(base_resolved)
     except ValueError:
+        # Escape attempt (or path outside the base tree): worth a warning, since
+        # ``resolve`` is the single gate for every request-supplied path.
+        _log.warning(
+            "path escapes base directory: %r (resolved=%s, base=%s)",
+            rel,
+            resolved,
+            base_resolved,
+        )
         return None
     return resolved
 

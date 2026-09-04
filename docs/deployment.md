@@ -20,7 +20,29 @@ uv run web-file-manager -d /srv/shared --allow-upload --allow-download -a 0.0.0.
 ```
 
 - `-a 0.0.0.0` binds all interfaces (only do this behind a trusted interface / proxy).
-- The process prints the startup banner to stdout and blocks until a signal.
+- The process logs the startup banner to **stderr** (INFO) and blocks until a
+  signal. Request logs and warnings also go to stderr — point your log collector
+  there (see [Logging](#logging)).
+
+## Logging
+
+All logs (banner, per-request lines, warnings, errors) are written to **stderr**
+via the stdlib `logging` module at INFO level, formatted
+`YYYY-MM-DD HH:MM:SS,ms LEVEL logger: message`. There is no file handler and no
+rotating log — collect stderr from the process (or via a supervisor) and ship it
+wherever you keep logs.
+
+- **Per request** (one `INFO` line): `GET /list?path=... -> 200 (127.0.0.1, 1.2ms)`.
+- **`WARNING`** lines mark the notable events: over-cap bodies (413), rejected
+  uploads (400), failed file writes, and *path-traversal attempts* (`resolve`
+  escaping the base dir — worth investigating in a shared deployment).
+- **`ERROR` + traceback** appears only if an unhandled exception leaks out of a
+  request (the server is designed to keep serving, so treat this as a bug report).
+
+To keep request logs out of a low-noise stream while retaining the warnings, raise
+the level of just the request logger at the process-manager level (or set the
+`WEB_FILE_MANAGER_LOG_LEVEL` if you add one — there is none today); today the whole
+stream is one level (INFO).
 
 ## Signals & shutdown
 
@@ -77,8 +99,9 @@ signal, so no special "wait" logic is needed.
 
 ## Operational notes
 
-- **Log**: startup banner + any warnings to stdout; request errors to stderr
-  (timestamped). Point a process manager at both.
+- **Log**: everything goes to **stderr** (timestamped, INFO level) — banner,
+  per-request lines, warnings, errors. See [Logging](#logging) above. Point a
+  process manager / log collector at the process's stderr.
 - **Disk**: uploads need write access to the target dir; the per-file temp file
   (`.upload-<uuid>.tmp`) is created in the *target* directory and `os.replace`d into
   place. Ensure the run user can write there.

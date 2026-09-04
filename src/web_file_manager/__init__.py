@@ -22,9 +22,14 @@ from .static import render_index
 
 __all__ = ["main"]
 
-# Unhandled request errors are logged to stderr with a timestamp.
+_log = logging.getLogger(__name__)
+
+# One line per request, emitted by the ``_request_log`` middleware in :func:`create_app`
+# (``server.py``); Uvicorn's startup/shutdown/error lines land here too.
+# INFO by default; everything goes to stderr.
 logging.basicConfig(
-    level=logging.WARNING, format="%(asctime)s %(levelname)s %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
 
@@ -105,15 +110,14 @@ def main() -> None:
     )
 
     # Startup banner (spec §2).
-    print(f"Web file manager: http://{args.address}:{args.port}/")
-    print(f"Base directory: {config.base_dir}")
-    print(f"Upload enabled: {'yes' if args.allow_upload else 'no'}")
-    print(f"Download enabled: {'yes' if args.allow_download else 'no'}")
+    _log.info("Web file manager: http://%s:%s/", args.address, args.port)
+    _log.info("Base directory: %s", config.base_dir)
+    _log.info("Upload enabled: %s", "yes" if args.allow_upload else "no")
+    _log.info("Download enabled: %s", "yes" if args.allow_download else "no")
     if not args.allow_upload and not args.allow_download:
-        print(
-            "warning: both upload and download are disabled; "
-            "the server will return 403/404 for all file operations",
-            file=sys.stderr,
+        _log.warning(
+            "both upload and download are disabled; "
+            "the server will return 403/404 for all file operations"
         )
 
     # Verify the address is bindable up front; a bind failure exits 2 (spec §2).

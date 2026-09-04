@@ -11,6 +11,9 @@ HTML/CSS/vanilla-JS page (no CDN, no build step, no external assets).
 - **Build/manager**: `uv` (the project uses `uv` + `uv_build`).
 - **Runtime deps**: `fastapi`, `uvicorn[standard]`, `python-multipart` (see
   [`docs/setup.md`](./docs/setup.md) for why each is present).
+- **Logging**: stdlib `logging` to stderr at INFO level — one line per request,
+  startup banner, and `WARNING` lines for the notable events (413s, 400s, failed
+  writes, path-traversal attempts). See [docs/deployment.md#logging](./docs/deployment.md#logging).
 
 ## Quick start
 

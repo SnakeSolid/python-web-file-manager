@@ -111,3 +111,25 @@ followed/overwritten with a regular file (TOCTOU-safe).
   (byte-range support itself is a v1 non-goal).
 - 405 (with `Allow`) for wrong methods and 404 for unmatched paths come from
   Starlette out of the box.
+
+## Logging
+
+All logging uses the **stdlib `logging` module** (no extra dependency); everything
+is written to **stderr**.
+
+- **Configured once** at import time in `__init__.py` via `logging.basicConfig`
+  (INFO level, format `%(asctime)s %(levelname)s %(name)s: %(message)s`). Uvicorn
+  is run on the built `FastAPI` instance, so its own `log_level="warning"` keeps the
+  built-in access logger quiet — request lines come from our middleware instead,
+  giving a single, consistent format.
+- **Per-request line** — the `_request_log` middleware (declared first in
+  `create_app`, so it is the **outermost** layer and measures the full request
+  path): `METHOD PATH -> STATUS (CLIENT, DURATIONSMS)`, emitted at `INFO`.
+- **`WARNING`** for events worth operator attention: rejected over-cap bodies (413),
+  validation errors (400), failed upload writes (with traceback), and
+  `paths.resolve` escaping the base directory (possible traversal attempt).
+- **`ERROR` / traceback** for unhandled exceptions leaking out of a request
+  (defensive — the server should never crash, but if it does, the stack is in the
+  log).
+- **`INFO`** for the startup banner (base dir, feature flags) and each successful
+  stored upload (original name → stored name, size).
